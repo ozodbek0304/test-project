@@ -1,14 +1,14 @@
-import { cn } from "@/lib/utils";
-import { useThemeContext } from "@/layouts/color";
-import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover";
-import { Button } from "../../ui/button";
-import { LayoutGrid, Moon, Palette, Sheet, Sun } from "lucide-react";
-import { Label } from "@radix-ui/react-label";
-import { useTheme } from "@/layouts/theme";
-import { useEffect } from "react";
-import { getIcon } from "./getIcon";
-import { themes } from "@/lib/theme-colors";
-import { useView } from "@/hooks/useView";
+import { cn } from "@/lib/utils"
+import { useThemeContext } from "@/layouts/color"
+import { Popover, PopoverContent, PopoverTrigger } from "../../ui/popover"
+import { Button } from "../../ui/button"
+import { Moon, Palette, Sun } from "lucide-react"
+import { Label } from "@radix-ui/react-label"
+import { useTheme } from "@/layouts/theme"
+import { useEffect } from "react"
+import { getIcon } from "./getIcon"
+import { themes } from "@/lib/theme-colors"
+import { useView } from "@/hooks/useView"
 
 const availableThemeColors = [
     { name: "Zinc", uz: "Siyoh", light: "bg-zinc-900", dark: "bg-zinc-700" },
@@ -64,37 +64,37 @@ const availableThemeColors = [
     //     uz: "React",
     //     icon: "/react.svg",
     // }
-];
+]
 
 export function ThemeColorToggle() {
-    const { themeColor, setThemeColor } = useThemeContext();
-    const { theme, setTheme } = useTheme();
-    const { view, setView } = useView();
+    const { themeColor, setThemeColor } = useThemeContext()
+    const { theme, setTheme } = useTheme()
+    const { view, setView } = useView()
 
     useEffect(() => {
         const currentPrimary =
-            themes[themeColor][theme as "light" | "dark"].primary;
+            themes[themeColor][theme as "light" | "dark"].primary
         const currentTextColor =
-            themes[themeColor][theme as "light" | "dark"].foreground;
-        const svgString = getIcon(currentPrimary, currentTextColor);
-        const blob = new Blob([svgString], { type: "image/svg+xml" });
-        const url = URL.createObjectURL(blob);
+            themes[themeColor][theme as "light" | "dark"].foreground
+        const svgString = getIcon(currentPrimary, currentTextColor)
+        const blob = new Blob([svgString], { type: "image/svg+xml" })
+        const url = URL.createObjectURL(blob)
 
-        let favicon = document.getElementById("favicon") as HTMLLinkElement;
+        let favicon = document.getElementById("favicon") as HTMLLinkElement
         if (favicon) {
-            document.head.removeChild(favicon);
+            document.head.removeChild(favicon)
         }
 
-        favicon = document.createElement("link");
-        favicon.id = "favicon";
-        favicon.rel = "icon";
-        favicon.type = "image/svg+xml";
-        favicon.href = url;
+        favicon = document.createElement("link")
+        favicon.id = "favicon"
+        favicon.rel = "icon"
+        favicon.type = "image/svg+xml"
+        favicon.href = url
 
-        document.head.appendChild(favicon);
+        document.head.appendChild(favicon)
 
-        return () => URL.revokeObjectURL(url);
-    }, [themeColor, theme]);
+        return () => URL.revokeObjectURL(url)
+    }, [themeColor, theme])
 
     return (
         <Popover>
@@ -102,33 +102,6 @@ export function ThemeColorToggle() {
                 <Button variant="ghost" icon={<Palette width={20} />} />
             </PopoverTrigger>
             <PopoverContent className="space-y-4 w-auto">
-                <div className="space-y-2">
-                    <Label className="text-sm">Ko'rinish</Label>
-                    <div className="flex items-center gap-2">
-                        <Button
-                            icon={<Sheet width={16} />}
-                            variant="outline"
-                            size="sm"
-                            className={
-                                view === "table"
-                                    ? "!border-2 !border-foreground"
-                                    : "m-[1px]"
-                            }
-                            onClick={() => setView("table")}
-                        />
-                        <Button
-                            icon={<LayoutGrid width={16} />}
-                            variant="outline"
-                            size="sm"
-                            className={
-                                view === "card"
-                                    ? "!border-2 !border-foreground"
-                                    : "m-[1px]"
-                            }
-                            onClick={() => setView("card")}
-                        />
-                    </div>
-                </div>
                 <div className="space-y-2">
                     <Label className="text-sm">Rejim</Label>
                     <div className="flex items-center gap-2">
@@ -178,7 +151,7 @@ export function ThemeColorToggle() {
                                                     "rounded-full h-5 w-5",
                                                     theme === "light"
                                                         ? light
-                                                        : dark
+                                                        : dark,
                                                 )}
                                             />
                                         )
@@ -197,11 +170,11 @@ export function ThemeColorToggle() {
                                 >
                                     {uz}
                                 </Button>
-                            )
+                            ),
                         )}
                     </div>
                 </div>
             </PopoverContent>
         </Popover>
-    );
+    )
 }

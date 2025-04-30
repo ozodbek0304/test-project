@@ -202,7 +202,4 @@ export function CollapsibleDataTable<TData>({
     );
 }
 
-function notClick(id: string) {
-    console.log(id)
-    return ["code", "phone_number", "Amallar", "Boshqarish"].includes(id);
-}
+

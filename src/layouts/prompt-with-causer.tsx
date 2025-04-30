@@ -51,13 +51,6 @@ export const PromptWithCauseProvider: React.FC<{ children: ReactNode }> = ({
         }
     }
 
-    const handleCancel = () => {
-        setIsOpen(false)
-        if (resolvePromiseRef.current) {
-            resolvePromiseRef.current(null)
-            resolvePromiseRef.current = undefined
-        }
-    }
 
     return (
         <PromptWithCauseContext.Provider value={{ prompt }}>
