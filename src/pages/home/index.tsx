@@ -5,7 +5,6 @@ import { useSearch } from "@tanstack/react-router"
 import { DataTable } from "@/components/ui/datatable"
 
 const HomePages = () => {
-
     const search: any = useSearch({ from: "/_main" })
 
     const { data, isLoading } = useGet<{
