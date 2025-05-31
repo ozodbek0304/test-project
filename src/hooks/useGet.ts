@@ -12,7 +12,7 @@ export type UseGetArgs<TData = any, TQueryFnData = unknown, TError = any> = {
 };
 
 export const getRequest = (url: string, config?: AxiosRequestConfig) =>
-  axiosInstance.get(`/${url}/`, config).then((res) => res.data);
+  axiosInstance.get(`/${url}`, config).then((res) => res.data);
 
 export const useGet = <TData = any, TQueryFnData = unknown, TError = any>(
   url: string,
