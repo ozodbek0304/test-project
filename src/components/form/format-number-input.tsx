@@ -18,8 +18,8 @@ interface IProps<IForm extends FieldValues> {
     registerOptions?: RegisterOptions<IForm>
     formatOptions?: Intl.NumberFormatOptions
     wrapperClassName?: string
-    thousandSeparatmor?: string
     decimalSeparator?: string
+    thousandSeparator?: string
     hideError?: boolean
     format?: string
 }
@@ -61,6 +61,7 @@ export function FormFormatNumberInput<IForm extends FieldValues>({
             )}
             <label className="relative flex items-center">
                 <PatternFormat
+                    allowEmptyFormatting
                     format={format}
                     id={name}
                     className={cn(

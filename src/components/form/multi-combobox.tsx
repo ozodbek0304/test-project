@@ -1,9 +1,27 @@
-import { Controller, Control } from "react-hook-form"
+import { Controller, Control, FieldValues, Path } from "react-hook-form"
 import FieldLabel from "./form-label"
 import FieldError from "./form-error"
 import { MultiCombobox as ShadcnCombobox } from "@/components/ui/multi-combobox"
+import { getNestedValue } from "./input"
 
-export function FormMultiCombobox({
+type ComboboxProps<T extends FieldValues> = {
+    name: Path<T>
+    label?: string
+    placeholder?: string
+    options: T[] | undefined
+    disabled?: boolean
+    required?: boolean
+    control: Control<T>
+    hideError?: boolean
+    onAdd?: () => void
+    labelKey?: keyof T
+    valueKey?: keyof T
+    skeletonCount?: number
+    isLoading?: boolean
+    onSearchChange?: (val: string) => void
+}
+
+export function FormMultiCombobox<T extends FieldValues>({
     name,
     label,
     options,
@@ -12,15 +30,21 @@ export function FormMultiCombobox({
     required,
     control,
     hideError = true,
-    returnVal = "label",
-}: thisProps) {
+    valueKey,
+    labelKey,
+    onAdd,
+    isLoading,
+    skeletonCount,
+    onSearchChange,
+}: ComboboxProps<T>) {
+    const error = getNestedValue(control._formState.errors, name)
     return (
         <div>
             {label && (
                 <FieldLabel
                     htmlFor={name}
                     required={!!required}
-                    isError={!!control._formState.errors?.[name]}
+                    isError={!!error}
                 >
                     {label}
                 </FieldLabel>
@@ -28,39 +52,35 @@ export function FormMultiCombobox({
             <Controller
                 name={name}
                 control={control}
+                rules={
+                    required
+                        ? { required: `${label || name}ni kiriting` }
+                        : {}
+                }
                 render={({ field }) => (
                     <div className="pt-0.5">
                         <ShadcnCombobox
-                            data={options}
+                            options={options}
                             values={field.value}
                             setValues={field.onChange}
-                            label={placeholder || label || "Select an option"}
+                            label={placeholder || label || "Tanlang"}
                             disabled={control._formState.disabled || disabled}
-                            isError={
-                                !label && !!control._formState.errors?.[name]
-                            }
-                            returnVal={returnVal}
+                            isError={!!error}
+                            onAdd={onAdd}
+                            valueKey={valueKey}
+                            labelKey={labelKey}
+                            isLoading={isLoading}
+                            skeletonCount={skeletonCount}
+                            onSearchChange={onSearchChange}
                         />
                     </div>
                 )}
             />
-            {!hideError && control._formState.errors?.[name] && (
+            {!hideError && error && (
                 <FieldError>
                     {control._formState.errors[name]?.message as string}
                 </FieldError>
             )}
         </div>
     )
-}
-
-interface thisProps {
-    name: string
-    label?: string
-    placeholder?: string
-    options: { label: string | number; value: string | number }[] | undefined
-    disabled?: boolean
-    required?: boolean
-    control: Control<any>
-    hideError?: boolean
-    returnVal?: "value" | "label"
 }

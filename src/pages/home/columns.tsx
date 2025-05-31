@@ -1,21 +1,14 @@
-import { Button } from "@/components/ui/button"
 import { formatPhoneNumber } from "@/lib/format-phone-number"
 import { ColumnDef } from "@tanstack/react-table"
-import { Edit } from "lucide-react"
 
-export const useColumns = ({
-    onEdit,
-}: {
-    onAdd: () => void
-    onEdit: (val: UserInfo) => void
-}): ColumnDef<UserInfo>[] => {
+export const useColumns = (): ColumnDef<UserInfo>[] => {
     return [
         {
             header: "№",
             cell: ({ row }) => (row.original.id ? row.index + 1 : ""),
         },
         {
-            header: "Rasmi",
+            header: "Rasm",
             accessorKey: "photo",
             cell: ({ row }) => (
                 <img
@@ -29,9 +22,11 @@ export const useColumns = ({
             header: "F.I.O",
             cell: ({ row }) =>
                 row.original?.first_name ? (
-                    <div className="flex flex-col text-sm">
-                        <span>{row.original.first_name}</span>
-                        <span>{row.original.last_name}</span>
+                    <div className="flex gap-3 items-end text-sm">
+                        <div className="flex flex-col">
+                            <span>{row.original.first_name}</span>
+                            <span>{row.original.last_name}</span>
+                        </div>
                         <span>{row.original.father_name}</span>
                     </div>
                 ) : (
@@ -54,21 +49,6 @@ export const useColumns = ({
         {
             header: "Bio",
             accessorKey: "bio",
-        },
-
-        {
-            header: "Amallar",
-            cell: ({ row }) => (
-                <div>
-                    <Button
-                        icon={<Edit width={18} />}
-                        size="sm"
-                        variant="ghost"
-                        className="!text-primary"
-                        onClick={() => onEdit(row.original as any)}
-                    />
-                </div>
-            ),
         },
     ]
 }

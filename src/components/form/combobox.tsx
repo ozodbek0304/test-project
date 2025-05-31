@@ -1,9 +1,30 @@
-import { Controller, Control } from "react-hook-form"
+import { Controller, Control, FieldValues, Path } from "react-hook-form"
 import FieldLabel from "./form-label"
 import FieldError from "./form-error"
 import { Combobox as ShadcnCombobox } from "@/components/ui/combobox"
+import { getNestedValue } from "./input"
 
-export function FormCombobox({
+type ComboboxProps<TForm extends FieldValues, T extends Record<string, any>> = {
+    name: Path<TForm>
+    label?: string
+    placeholder?: string
+    options: T[] | undefined
+    disabled?: boolean
+    required?: boolean
+    control: Control<TForm>
+    hideError?: boolean
+    onAdd?: () => void
+    labelKey?: keyof T
+    valueKey?: keyof T
+    skeletonCount?: number
+    isLoading?: boolean
+    onSearchChange?: (val: string) => void
+}
+
+export function FormCombobox<
+    TForm extends FieldValues,
+    T extends Record<string, any>,
+>({
     name,
     label,
     options,
@@ -11,17 +32,22 @@ export function FormCombobox({
     placeholder,
     required,
     control,
-    setValue,
     hideError = true,
-    returnVal = "value",
-}: thisProps) {
+    valueKey,
+    labelKey,
+    onAdd,
+    isLoading,
+    skeletonCount,
+    onSearchChange,
+}: ComboboxProps<TForm, T>) {
+    const error = getNestedValue(control._formState.errors, name)
     return (
-        <div className="w-full">
+        <fieldset className="flex flex-col w-full">
             {label && (
                 <FieldLabel
                     htmlFor={name}
                     required={!!required}
-                    isError={!!control._formState.errors?.[name]}
+                    isError={!!error}
                 >
                     {label}
                 </FieldLabel>
@@ -29,46 +55,31 @@ export function FormCombobox({
             <Controller
                 name={name}
                 control={control}
+                rules={
+                    required ? { required: `${label || name}ni kiriting` } : {}
+                }
                 render={({ field }) => (
-                    <div className={label ? "pt-1" : ""}>
-                        <ShadcnCombobox
-                            options={options}
-                            value={field.value || ""}
-                            setValue={(val) => {
-                                if (val === "other") {
-                                    setValue?.("other")
-                                } else {
-                                    field.onChange(val)
-                                }
-                            }}
-                            label={placeholder || label || "Tanlang"}
-                            disabled={control._formState.disabled || disabled}
-                            isError={
-                                !label && !!control._formState.errors?.[name]
-                            }
-                            returnVal={returnVal}
-                        />
-                    </div>
+                    <ShadcnCombobox
+                        options={options}
+                        value={field.value || ""}
+                        setValue={field.onChange}
+                        label={placeholder || label || "Tanlang"}
+                        disabled={control._formState.disabled || disabled}
+                        isError={!!error}
+                        onAdd={onAdd}
+                        valueKey={valueKey}
+                        labelKey={labelKey}
+                        isLoading={isLoading}
+                        skeletonCount={skeletonCount}
+                        onSearchChange={onSearchChange}
+                    />
                 )}
             />
-            {!hideError && control._formState.errors?.[name] && (
+            {!hideError && error && (
                 <FieldError>
                     {control._formState.errors[name]?.message as string}
                 </FieldError>
             )}
-        </div>
+        </fieldset>
     )
-}
-
-interface thisProps {
-    name: string
-    label?: string
-    placeholder?: string
-    options: { label: string | number; value: string | number }[] | undefined
-    disabled?: boolean
-    required?: boolean
-    setValue?: (val: string | number) => void
-    control: Control<any>
-    hideError?: boolean
-    returnVal?: "value" | "label"
 }

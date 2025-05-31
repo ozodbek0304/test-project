@@ -1,4 +1,3 @@
-import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
     Command,
@@ -13,29 +12,32 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { CheckIcon, ChevronsUpDown, Plus, X } from "lucide-react"
-import { useState } from "react"
+import { cn } from "@/lib/utils"
 import { useNavigate, useSearch } from "@tanstack/react-router"
+import { CheckIcon, ChevronDown, X } from "lucide-react"
+import { useState } from "react"
 
-export function ParamMultiCombobox({
+type ParamComboboxProps<T extends Record<string, any>> = {
+    options: T[]
+    paramName: string
+    label?: string
+    disabled?: boolean
+    labelKey: keyof T
+    valueKey: keyof T
+    isError?: boolean
+    className?: string
+}
+
+export function ParamMultiCombobox<T extends Record<string, any>>({
     options,
     paramName,
     label,
     disabled,
-    addNew,
     isError,
-    returnVal = "label",
     className,
-}: {
-    options: Item[] | undefined
-    paramName: string
-    label?: string
-    disabled?: boolean
-    addNew?: boolean
-    isError?: boolean
-    returnVal?: "value" | "label"
-    className?: string
-}) {
+    labelKey,
+    valueKey,
+}: ParamComboboxProps<T>) {
     const navigate = useNavigate()
     const search: any = useSearch({ from: "/_main" }) as Record<
         string,
@@ -44,18 +46,19 @@ export function ParamMultiCombobox({
     const currentValues = search[paramName]?.split(",") || []
     const [open, setOpen] = useState(false)
 
-    const handleSelect = (option: Item) => {
-        const val = returnVal === "label" ? option.label : option.value
-        const updatedValues =
-            currentValues.includes(String(val)) ?
-                currentValues.filter((v: string | number) => v !== String(val))
-                : [...currentValues, String(val)]
+    const handleSelect = (option: T) => {
+        const val = option[valueKey]
+
+        const updatedValues = currentValues.includes(val)
+            ? currentValues.filter((v: string | number) => v !== val)
+            : [...currentValues, val]
 
         navigate({
             search: {
                 ...search,
-                [paramName]:
-                    updatedValues.length ? updatedValues.join(",") : undefined,
+                [paramName]: updatedValues.length
+                    ? updatedValues.join(",")
+                    : undefined,
             },
         })
     }
@@ -65,6 +68,19 @@ export function ParamMultiCombobox({
         setOpen(false)
     }
 
+    const selectedLabels =
+        currentValues.length > 0
+            ? currentValues
+                  ?.map((val: string) => {
+                      const found = options.find(
+                          (d) => String(d[valueKey]) === val,
+                      )
+                      return found?.[labelKey] || val
+                  })
+                  .join(", ")
+            : undefined
+
+            
     return (
         <Popover modal open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
@@ -80,17 +96,8 @@ export function ParamMultiCombobox({
                     )}
                     disabled={disabled}
                 >
-                    {currentValues.length ?
-                        currentValues
-                            .map(
-                                (val: string) =>
-                                    options?.find(
-                                        (d) => String(d[returnVal]) === val,
-                                    )?.label || val,
-                            )
-                            .join(", ")
-                        : label}
-                    <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                    {currentValues.length ? selectedLabels : label}
+                    <ChevronDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
                 </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -115,46 +122,23 @@ export function ParamMultiCombobox({
                                     key={i}
                                     onSelect={() => handleSelect(d)}
                                 >
-                                    {d.label}
+                                    {d[labelKey]}
                                     <CheckIcon
                                         className={cn(
                                             "ml-auto h-4 w-4",
-                                            (
-                                                currentValues.includes(
-                                                    String(d[returnVal]),
-                                                )
-                                            ) ?
-                                                "opacity-100"
+                                            currentValues.includes(
+                                                String(d[valueKey]),
+                                            )
+                                                ? "opacity-100"
                                                 : "opacity-0",
                                         )}
                                     />
                                 </CommandItem>
                             ))}
-                            {addNew && (
-                                <CommandItem
-                                    onSelect={() =>
-                                        handleSelect({
-                                            label: "New Item",
-                                            value: -1,
-                                        })
-                                    }
-                                >
-                                    <Plus width={20} className="pr-1" /> Yangi
-                                    qo'shish
-                                    <CheckIcon
-                                        className={cn("ml-auto h-4 w-4")}
-                                    />
-                                </CommandItem>
-                            )}
                         </CommandGroup>
                     </CommandList>
                 </Command>
             </PopoverContent>
         </Popover>
     )
-}
-
-type Item = {
-    label: string | number
-    value: string | number
 }

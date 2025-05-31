@@ -13,41 +13,57 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { CheckIcon, ChevronsUpDown } from "lucide-react"
+import { CheckIcon, ChevronDown, Plus } from "lucide-react"
 import { useState } from "react"
+import { ClassNameValue } from "tailwind-merge"
+import { Skeleton } from "./skeleton"
+import { DEBOUNCETIME } from "@/constants/default"
 
-export function MultiCombobox({
-    data,
+type ComboboxProps<T extends Record<string, any>> = {
+    options: T[] | undefined
+    values: (string | number | null)[]
+    setValues: (val: any) => void
+    onAdd?: () => void
+    label: string
+    disabled?: boolean
+    isLoading?: boolean
+    isError?: boolean
+    className?: ClassNameValue
+    labelKey?: keyof T
+    skeletonCount?: number
+    valueKey?: keyof T
+    onSearchChange?: (val: string) => void
+}
+export function MultiCombobox<T extends Record<string, any>>({
+    options,
     values,
     setValues,
     label,
     disabled,
+    onAdd,
     isError,
-    returnVal = "value",
-}: {
-    data: { label: string | number; value: string | number }[] | undefined
-    values?: (string | number)[]
-    setValues: (val: (string | number)[]) => void
-    label: string
-    disabled?: boolean
-    isError?: boolean
-    returnVal?: "value" | "label"
-}) {
+    labelKey = "label",
+    valueKey = "value",
+    className,
+    isLoading,
+    skeletonCount = 5,
+    onSearchChange,
+}: ComboboxProps<T>) {
     const [open, setOpen] = useState(false)
 
-    const handleSelect = (selectedItem: {
-        label: string | number
-        value: string | number
-    }) => {
-        const newValue =
-            returnVal === "label" ? selectedItem.label : selectedItem.value
-        const updatedValues =
-            values?.find((v) => v === newValue) ?
-                values?.filter((v) => v !== newValue)
-                : (values || []).concat(newValue)
+    const handleSelect = (option: T) => {
+        const newValue = option[valueKey]
+        const updatedValues = values?.find((v) => v === newValue)
+            ? values?.filter((v) => v !== newValue)
+            : (values || []).concat(newValue)
         setValues(updatedValues)
+        setOpen(false)
     }
 
+    const handleClickAdd = () => {
+        onAdd ? onAdd?.() : undefined
+    }
+    
 
     return (
         <Popover modal open={open} onOpenChange={setOpen}>
@@ -57,44 +73,84 @@ export function MultiCombobox({
                     role="combobox"
                     aria-expanded={open}
                     className={cn(
-                        "w-full justify-between",
-                        isError && "!text-destructive",
+                        "w-full justify-between bg-background overflow-hidden px-2 hover:bg-background font-normal text-gray-400 hover:text-gray-400",
+                        values && "font-medium text-foreground",
+                        isError && " border-destructive",
+                        className,
                     )}
                     disabled={disabled}
                 >
-                    {values?.length && values?.length < 3 ?
-                        data
-                            ?.filter((d) => values?.includes(d[returnVal]))
-                            .map((d) => d.label)
-                            .join(", ")
-                        : values?.length ?
-                            values?.length + " ta tanlandi"
+                    <div className="flex items-center gap-2">
+                        <ChevronDown className=" h-4 w-4  text-primary opacity-50 " />
+                        {values?.length && values?.length < 3
+                            ? options
+                                  ?.filter((d) =>
+                                      values?.includes(d[valueKey]),
+                                  )
+                                  .map((d) => d[labelKey])
+                                  .join(", ")
+                            : values?.length
+                            ? values?.length + " ta tanlandi"
                             : label}
-                    <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                    </div>
+                   {onAdd && <span
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            handleClickAdd()
+                        }}
+                        className="dark:bg-card bg-slate-200 hover:bg-slate-300 hover:scale-105 p-1 rounded-full"
+                    >
+                        <Plus className=" h-4 w-4 shrink-0  text-primary" />
+                    </span>}
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-                <Command>
-                    <CommandInput placeholder={label} className="h-10" />
+            <PopoverContent className="p-0">
+                <Command shouldFilter={onSearchChange ? false : true}>
+                    <CommandInput
+                        onValueChange={(text) => {
+                            if (onSearchChange) {
+                                setTimeout(() => {
+                                    onSearchChange(text)
+                                }, DEBOUNCETIME)
+                            }
+                        }}
+                        placeholder={label}
+                        className="h-10"
+                    />
                     <CommandList>
                         <CommandEmpty>Mavjud emas</CommandEmpty>
                         <CommandGroup className="!overflow-y-scroll">
-                            {data?.map((d, i: number) => (
+                            {options?.map((d, i: number) => (
                                 <CommandItem
                                     key={i}
                                     onSelect={() => handleSelect(d)}
                                 >
-                                    {d.label}
+                                    {d[labelKey]}
                                     <CheckIcon
                                         className={cn(
                                             "ml-auto h-4 w-4",
-                                            values?.includes(d[returnVal]) ?
-                                                "opacity-100"
+                                            values?.includes(d[valueKey])
+                                                ? "opacity-100"
                                                 : "opacity-0",
                                         )}
                                     />
                                 </CommandItem>
                             ))}
+
+                            {isLoading ? (
+                                <div className="space-y-1">
+                                    {Array.from({ length: skeletonCount }).map(
+                                        (_, index) => (
+                                            <CommandItem
+                                                key={index}
+                                                className="p-0"
+                                            >
+                                                <Skeleton className="w-full h-7" />
+                                            </CommandItem>
+                                        ),
+                                    )}
+                                </div>
+                            ) : null}
                         </CommandGroup>
                     </CommandList>
                 </Command>

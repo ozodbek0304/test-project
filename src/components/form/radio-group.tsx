@@ -1,53 +1,115 @@
-import { Controller, Control } from "react-hook-form"
-import FieldError from "./form-error"
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
-import { ClassNameValue } from "tailwind-merge"
-import FieldLabel from "./form-label"
+import { cn } from "@/lib/utils";
+import { useMemo } from "react";
+import {
+    Controller,
+    FieldValues,
+    Path,
+    useController,
+    UseFormReturn,
+} from "react-hook-form";
+import { ClassNameValue } from "tailwind-merge";
+import { Label } from "../ui/label";
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group";
+import FieldError from "./form-error";
 
-export function FormRadioGroup({
+interface SelectOption {
+    name: string | number;
+    id: string | number;
+}
+
+interface IProps<IForm extends FieldValues> {
+    methods: UseFormReturn<IForm>;
+    name: Path<IForm>;
+    options: SelectOption[];
+    label?: string;
+    className?: ClassNameValue;
+    hideError?: boolean;
+    returnValue?: "name" | "id";
+    disabled?: boolean;
+    required?: boolean;
+}
+export default function FormRadioGroup<IForm extends FieldValues>({
     name,
     disabled,
-    control,
-    hideError = true,
+    methods,
+    hideError = false,
+    required = false,
     options,
-    className
-}: thisProps) {
+    className,
+    label,
+    returnValue = "id",
+}: IProps<IForm>) {
+    const {
+        field,
+        fieldState: { error },
+    } = useController({
+        name,
+        control: methods.control,
+        rules: {
+            required: {
+                value: required,
+                message: `${label}ni tanlang`,
+            },
+        },
+    });
+
+    const lastReturnValue = useMemo(
+        () => returnValue || (options?.[0]?.id ? "id" : "name"),
+        [returnValue, options]
+    );
+
     return (
-        <div>
+        <fieldset className="space-y-1">
+            {label && (
+                <Label
+                    htmlFor={name}
+                    className={cn(
+                        !!error && "text-destructive",
+                        "cursor-pointer"
+                    )}
+                >
+                    {label}
+                </Label>
+            )}
             <Controller
                 name={name}
-                control={control}
-                render={({ field }) => (
+                control={methods.control}
+                render={() => (
                     <RadioGroup
                         value={field.value}
                         onValueChange={field.onChange}
                         disabled={disabled || field.disabled}
                         className={`${className}`}
                     >
-                        {options?.map((option) => <div className="flex items-center space-x-2" key={option.value}>
-                            <RadioGroupItem value={option.value?.toString()} id={option.value?.toString()} />
-                            <FieldLabel htmlFor={option.value?.toString()} required={false} isError={!!control._formState.errors?.[name]} className='pb-0'>
-                                {option.label}
-                            </FieldLabel>
-                        </div>)}
+                        {options?.map((option) => (
+                            <div
+                                className="flex items-center space-x-2"
+                                key={option.id}
+                            >
+                                <RadioGroupItem
+                                    id={option?.[lastReturnValue]?.toString()}
+                                    value={option?.[
+                                        lastReturnValue
+                                    ]?.toString()}
+                                />
+                                <Label
+                                    htmlFor={option?.[
+                                        lastReturnValue
+                                    ]?.toString()}
+                                    className={cn(
+                                        !!error && "text-destructive",
+                                        "cursor-pointer",
+                                        "text-base font-semibold"
+                                    )}
+                                >
+                                    {option.name}
+                                </Label>
+                            </div>
+                        ))}
                     </RadioGroup>
                 )}
             />
-            {!hideError && control._formState.errors?.[name] && (
-                <FieldError>
-                    {control._formState.errors[name]?.message as string}
-                </FieldError>
-            )}
-        </div>
-    )
-}
-
-interface thisProps {
-    name: string
-    disabled?: boolean
-    control: Control<any>
-    required?: boolean
-    hideError?: boolean
-    options?: { label: string | number; value: string | number }[]
-    className?: ClassNameValue
+            {!hideError && !!error && <FieldError>{error.message}</FieldError>}
+        </fieldset>
+    );
 }

@@ -1,20 +1,24 @@
-import { Controller, Control } from "react-hook-form"
-import FieldLabel from "./form-label"
-import FieldError from "./form-error"
-import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar"
-import { ClassNameValue } from "tailwind-merge"
-import SeeMore from "../ui/see-more"
+import { Controller, FieldValues, UseFormReturn, Path } from "react-hook-form";
+import { Avatar, AvatarImage, AvatarFallback } from "../ui/avatar";
+import { ClassNameValue } from "tailwind-merge";
+import SeeInView from "../ui/see-in-view";
+import { Label } from "../ui/label";
+import { cn } from "@/lib/utils";
+import FieldError from "./form-error";
 
-export function FormImagePicker({
+export default function FormImagePicker<IForm extends FieldValues>({
     name,
     label,
     disabled,
-    required,
-    control,
-    setValue,
+    methods,
     hideError = true,
-    className
-}: ImagePickerProps) {
+    className,
+    avatar,
+}: ImagePickerProps<IForm>) {
+    const {
+        control,
+        formState: { errors },
+    } = methods;
     return (
         <div className="w-full flex flex-col items-center">
             <Controller
@@ -22,16 +26,55 @@ export function FormImagePicker({
                 control={control}
                 render={({ field }) => (
                     <div className="relative">
-                        <SeeMore d={{ images: [{ image: field.value instanceof File ? URL.createObjectURL(field.value) : field.value }] }}>
-                            <Avatar className={`${className}`}>
-                                <AvatarImage
-                                    src={field.value ? (field.value instanceof File ? URL.createObjectURL(field.value) : field.value) : undefined}
-                                    alt="Selected Image"
-                                    className="object-cover"
-                                />
-                                <AvatarFallback>Rasm</AvatarFallback>
+                        {avatar ? (
+                            <Avatar className={`scale-150 mb-4 ${className}`}>
+                                {field.value && (
+                                    <SeeInView
+                                        url={
+                                            typeof field.value === "string"
+                                                ? field.value
+                                                : field.value &&
+                                                  URL.createObjectURL(
+                                                      field.value
+                                                  )
+                                        }
+                                    >
+                                        <AvatarImage
+                                            src={
+                                                typeof field.value === "string"
+                                                    ? field.value
+                                                    : field.value &&
+                                                      URL.createObjectURL(
+                                                          field.value
+                                                      )
+                                            }
+                                            alt="Selected Image"
+                                            className="object-cover"
+                                        />
+                                    </SeeInView>
+                                )}
+                                <AvatarFallback>Img</AvatarFallback>
                             </Avatar>
-                        </SeeMore>
+                        ) : (
+                            <>
+                                {field.value ? (
+                                    <SeeInView
+                                        url={
+                                            typeof field.value === "string"
+                                                ? field.value
+                                                : field.value &&
+                                                  URL.createObjectURL(
+                                                      field.value
+                                                  )
+                                        }
+                                    />
+                                ) : (
+                                    <div
+                                        className={`${className} bg-secondary`}
+                                    ></div>
+                                )}
+                            </>
+                        )}
                         <input
                             type="file"
                             id={name}
@@ -40,45 +83,41 @@ export function FormImagePicker({
                             onChange={(e) => {
                                 const file = e.target.files?.[0];
                                 if (file) {
-                                    setValue?.(file);
                                     field.onChange(file);
                                 }
                             }}
                             hidden
                         />
                     </div>
-                )
-                }
+                )}
             />
-            {
-                label && (
-                    <FieldLabel
-                        htmlFor={name}
-                        required={!!required}
-                        isError={!!control._formState.errors?.[name]}
-                    >
-                        {label}
-                    </FieldLabel>
-                )
-            }
-            {
-                !hideError && control._formState.errors?.[name] && (
-                    <FieldError>
-                        {control._formState.errors[name]?.message as string}
-                    </FieldError>
-                )
-            }
-        </div >
-    )
+            {label && (
+                <Label
+                    htmlFor={name}
+                    className={cn(
+                        !!errors?.[name] && "text-destructive",
+                        "cursor-pointer pt-2"
+                    )}
+                >
+                    {label}
+                </Label>
+            )}
+            {!hideError && control._formState.errors?.[name] && (
+                <FieldError>
+                    {control._formState.errors[name]?.message as string}
+                </FieldError>
+            )}
+        </div>
+    );
 }
 
-interface ImagePickerProps {
-    name: string
-    label?: string
-    disabled?: boolean
-    required?: boolean
-    setValue?: (val: File) => void
-    control: Control<any>
-    hideError?: boolean
-    className?: ClassNameValue
+interface ImagePickerProps<IForm extends FieldValues> {
+    name: Path<IForm>;
+    label?: string;
+    disabled?: boolean;
+    required?: boolean;
+    methods: UseFormReturn<IForm>;
+    hideError?: boolean;
+    className?: ClassNameValue;
+    avatar?: boolean;
 }

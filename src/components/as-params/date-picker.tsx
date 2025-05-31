@@ -14,6 +14,7 @@ interface IProps {
     disabled?: boolean
     paramName?: string
     defaultValue?: Date | string
+    placeholder?: string
 }
 
 export default function ParamDatePicker({
@@ -23,6 +24,7 @@ export default function ParamDatePicker({
     paramName = "date",
     defaultValue,
     disabled,
+    placeholder,
     ...props
 }: IProps) {
     const navigate = useNavigate()
@@ -62,7 +64,7 @@ export default function ParamDatePicker({
     return (
         <div
             className={cn(
-                "relative flex items-center justify-between min-w-52",
+                "relative flex items-center justify-between min-w-52 max-w-[280px]",
                 className,
             )}
         >
@@ -72,6 +74,8 @@ export default function ParamDatePicker({
                 disabled={disabled}
                 {...props}
                 defaultValue={new Date()}
+                placeholder={placeholder}
+                size="default"
             />
             {parsedDate && !disabled && (
                 <X

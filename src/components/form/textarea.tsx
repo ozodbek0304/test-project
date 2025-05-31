@@ -1,19 +1,24 @@
-import { FieldValues, Path, RegisterOptions, UseFormReturn } from "react-hook-form";
-import { cn } from "@/lib/utils";
-import FieldLabel from "./form-label";
-import FieldError from "./form-error";
-import { ClassNameValue } from "tailwind-merge";
-import { Textarea } from "../ui/textarea";
-import { TextareaHTMLAttributes } from "react";
+import {
+    FieldValues,
+    Path,
+    RegisterOptions,
+    UseFormReturn,
+} from "react-hook-form"
+import { cn } from "@/lib/utils"
+import FieldLabel from "./form-label"
+import FieldError from "./form-error"
+import { ClassNameValue } from "tailwind-merge"
+import { Textarea } from "../ui/textarea"
+import { getNestedValue } from "./input"
 
 interface IProps<IForm extends FieldValues> {
-    methods: UseFormReturn<IForm>;
-    name: Path<IForm>;
-    label?: string;
-    required?: boolean;
-    registerOptions?: RegisterOptions<IForm>;
-    wrapperClassName?: ClassNameValue;
-    hideError?: boolean;
+    methods: UseFormReturn<IForm>
+    name: Path<IForm>
+    label?: string
+    required?: boolean
+    registerOptions?: RegisterOptions<IForm>
+    wrapperClassName?: ClassNameValue
+    hideError?: boolean
 }
 
 export function FormTextarea<IForm extends FieldValues>({
@@ -33,15 +38,13 @@ export function FormTextarea<IForm extends FieldValues>({
     } = methods
 
     const reg = register(name, {
-        required: {
-            value: required,
-            message: methods.formState.errors[name]?.message as any,
-        },
+        required: required ? `${label}ni kiriting` : false,
         ...registerOptions,
         disabled: props.disabled,
     })
 
     const { disabled, ...otherProps } = props
+    const error = getNestedValue(errors, name)
 
     return (
         <fieldset className={cn("flex flex-col w-full", wrapperClassName)}>
@@ -49,7 +52,7 @@ export function FormTextarea<IForm extends FieldValues>({
                 <FieldLabel
                     htmlFor={name}
                     required={required}
-                    isError={!!errors?.[name]}
+                    isError={!!error}
                 >
                     {label}
                 </FieldLabel>
@@ -61,8 +64,8 @@ export function FormTextarea<IForm extends FieldValues>({
                 placeholder={props.placeholder || label}
                 id={name}
                 className={
-                    !!errors?.[name] && !label ?
-                        "border-destructive focus:border-border !ring-destructive"
+                    !!error && label
+                        ? "border-destructive focus:border-border !ring-destructive"
                         : ""
                 }
             />

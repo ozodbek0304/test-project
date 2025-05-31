@@ -13,65 +13,107 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/components/ui/popover"
-import { CheckIcon, ChevronsUpDown, Plus, X } from "lucide-react"
-import { useState } from "react"
+import { CheckIcon, ChevronDown, Plus, X } from "lucide-react"
 import { ClassNameValue } from "tailwind-merge"
+import { useState } from "react"
+import { Skeleton } from "./skeleton"
+import { DEBOUNCETIME } from "@/constants/default"
 
-export function Combobox({
+export type ComboboxProps<T extends Record<string, any>> = {
+    options: T[] | undefined
+    value: string | number | null
+    setValue: (val: any) => void
+    onAdd?: () => void
+    label: string
+    disabled?: boolean
+    isLoading?: boolean
+    isError?: boolean
+    returnVal?: string
+    className?: ClassNameValue
+    labelKey?: keyof T
+    valueKey?: keyof T
+    skeletonCount?: number
+    onSearchChange?: (val: string) => void
+}
+
+export function Combobox<T extends Record<string, any>>({
     options,
     value,
     setValue,
     label,
     disabled,
-    addNew,
+    onAdd,
     isError,
-    returnVal = "value",
+    labelKey = "label",
+    valueKey = "value",
     className,
-}: {
-    options: Item[] | undefined
-    value: string | number | null
-    setValue: (val: any) => void
-    label: string
-    disabled?: boolean
-    addNew?: boolean
-    isError?: boolean
-    returnVal?: "value" | "label"
-    className?: ClassNameValue
-}) {
+    isLoading,
+    skeletonCount = 5,
+    onSearchChange,
+}: ComboboxProps<T>) {
     const [open, setOpen] = useState(false)
 
-    const handleSelect = (option: Item) => {
-        const returnValue = returnVal === "label" ? option.label : option.value
+    const handleSelect = (option: T) => {
+        const returnValue = option[valueKey]
         setValue(returnValue)
         setOpen(false)
     }
 
+    const handleClickAdd = () => {
+        onAdd ? onAdd?.() : undefined
+    }
+
+    const sortedOptions = options?.sort((a, b) => {
+        const isASelected = a[valueKey] == value
+        const isBSelected = b[valueKey] == value
+        return isASelected === isBSelected ? 0 : isASelected ? -1 : 1
+    })
+
     return (
-        <Popover modal open={open} onOpenChange={setOpen}>
+        <Popover open={open} onOpenChange={setOpen}>
             <PopoverTrigger asChild>
                 <Button
                     variant="outline"
                     role="combobox"
-                    aria-expanded={open}
                     className={cn(
-                        "w-full justify-between bg-background font-normal text-muted-foreground",
+                        "w-full justify-between bg-background   px-2 hover:bg-background font-normal text-gray-400 hover:text-gray-400",
                         value && "font-medium text-foreground",
-                        isError && "!text-destructive",
+                        isError && " border-destructive",
                         className,
                     )}
                     disabled={disabled}
                 >
-                    {value ?
-                        options
-                            ?.find((d) => d.value == value)
-                            ?.label?.toString() || value
-                    :   label}
-                    <ChevronsUpDown className="ml-auto h-4 w-4 shrink-0 opacity-50" />
+                    <div className="flex items-center gap-2 ">
+                        <ChevronDown className=" h-4 w-4  text-primary opacity-50 " />
+                        {value
+                            ? options
+                                  ?.find((d) => d[valueKey] == value)
+                                  ?.[labelKey]?.toString() || value
+                            : label}
+                    </div>
+                    <span
+                        onClick={(e) => {
+                            e.stopPropagation()
+                            handleClickAdd()
+                        }}
+                        className="dark:bg-card bg-slate-200 hover:bg-slate-300 hover:scale-105 p-1 rounded-full"
+                    >
+                        <Plus className=" h-4 w-4 shrink-0  text-primary" />
+                    </span>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-auto p-0">
-                <Command>
-                    <CommandInput placeholder={label} />
+            <PopoverContent className="p-0">
+                <Command shouldFilter={onSearchChange ? false : true}>
+                    <CommandInput
+                        onValueChange={(text) => {
+                            if (onSearchChange) {
+                                setTimeout(() => {
+                                    onSearchChange(text)
+                                }, DEBOUNCETIME)
+                            }
+                        }}
+                        placeholder={label}
+                    />
                     {!!value && (
                         <span className="absolute cursor-pointer text-destructive top-1.5 right-1 p-1">
                             <X
@@ -89,37 +131,36 @@ export function Combobox({
                                     key={i}
                                     onSelect={() => handleSelect(d)}
                                 >
-                                    {d.label}
+                                    {d[labelKey]}
                                     <CheckIcon
                                         className={cn(
                                             "ml-auto h-4 w-4",
-                                            value == d[returnVal] ?
-                                                "opacity-100"
-                                            :   "opacity-0",
+                                            value == d[valueKey]
+                                                ? "opacity-100"
+                                                : "opacity-0",
                                         )}
                                     />
                                 </CommandItem>
                             ))}
-                            {addNew && (
-                                <CommandItem
-                                    onSelect={() => {
-                                        setValue(-1)
-                                        setOpen(false)
-                                    }}
-                                >
-                                    <Plus width={20} className="pr-1" /> Yangi
-                                    qo'shish
-                                </CommandItem>
-                            )}
+
+                            {isLoading ? (
+                                <div className="space-y-1">
+                                    {Array.from({ length: skeletonCount }).map(
+                                        (_, index) => (
+                                            <CommandItem
+                                                key={index}
+                                                className="p-0"
+                                            >
+                                                <Skeleton className="w-full h-7" />
+                                            </CommandItem>
+                                        ),
+                                    )}
+                                </div>
+                            ) : null}
                         </CommandGroup>
                     </CommandList>
                 </Command>
             </PopoverContent>
         </Popover>
     )
-}
-
-type Item = {
-    label: string | number
-    value: string | number
 }

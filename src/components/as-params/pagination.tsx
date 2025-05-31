@@ -1,3 +1,6 @@
+import { DEFAULT_PAGE_SIZE } from "@/constants/default"
+import { cn } from "@/lib/utils"
+import { useNavigate, useSearch } from "@tanstack/react-router"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "../ui/button"
 import {
@@ -7,18 +10,16 @@ import {
     PaginationItem,
     PaginationLink,
 } from "../ui/pagination2"
-import { cn } from "@/lib/utils"
-import { useNavigate, useSearch } from "@tanstack/react-router"
 import Select from "../ui/select"
 
 const ParamPagination: React.FC<PaginationProps> = ({
     totalPages = 1,
-    page_sizes = [10, 25, 50, 75, 100],
+    page_sizes = [DEFAULT_PAGE_SIZE, 50, 100],
     paramName = "page",
     pageSizeParamName = "page_size",
     disabled = false,
     changePageSize = true,
-    PageSize = 25,
+    PageSize = DEFAULT_PAGE_SIZE,
 }) => {
     const navigate = useNavigate()
     const search: any = useSearch({ from: "/_main" }) as Record<
@@ -30,7 +31,7 @@ const ParamPagination: React.FC<PaginationProps> = ({
     currentPage =
         isNaN(currentPage) || currentPage < 1 ?
             1
-            : Math.min(currentPage, totalPages)
+        :   Math.min(currentPage, totalPages)
 
     const childPages = window.innerWidth <= 640 ? 1 : 2
 
@@ -91,54 +92,50 @@ const ParamPagination: React.FC<PaginationProps> = ({
     return (
         <div className="flex items-center gap-4">
             <Pagination2 className="w-auto m-0">
-                <PaginationContent className="flex items-center gap-4">
+                <PaginationContent className="flex items-center">
                     <PaginationItem>
                         <Button
-                            disabled={disabled || currentPage === 1 || totalPages < 2}
+                            disabled={disabled || currentPage === 1}
                             icon={<ChevronLeft width={20} />}
                             variant="ghost"
                             onClick={handlePrevious}
                             size="icon"
                             aria-label="Previous Page"
-                            className={cn("w-7 h-7 mt-1 sm:m-0 sm:w-10 sm:h-10 !bg-primary border-none !text-primary-foreground", ((disabled || currentPage === 1) || totalPages < 2) && "cursor-not-allowed pointer-events-none !bg-secondary !text-secondary-foreground")}
+                            className="w-7 h-7 mt-1 sm:m-0 sm:w-10 sm:h-10"
                         />
                     </PaginationItem>
-                    <div className="bg-secondary flex items-center rounded-md h-8">
-                        {pageNumbers.map((page, index) =>
-                            typeof page === "number" ?
-                                <PaginationItem key={page}>
-                                    <PaginationLink
-                                        isActive={page === currentPage}
-                                        onClick={() => handlePageChange(page)}
-                                        className={cn(
-                                            "cursor-pointer hover:bg-transparent !text-primary",
-                                            disabled &&
+                    {pageNumbers.map((page, index) =>
+                        typeof page === "number" ?
+                            <PaginationItem key={page}>
+                                <PaginationLink
+                                    isActive={page === currentPage}
+                                    onClick={() => handlePageChange(page)}
+                                    className={cn(
+                                        "cursor-pointer",
+                                        disabled &&
                                             "cursor-not-allowed pointer-events-none opacity-50",
-                                            "w-7 h-7 sm:w-10 sm:h-10",
-                                            currentPage === page && "!bg-primary border-none !text-primary-foreground shadow-pagination_shadow duration-0",
-                                        )}
-                                        aria-current={
-                                            page === currentPage ? "page" : (
-                                                undefined
-                                            )
-                                        }
-                                    >
-                                        {page}
-                                    </PaginationLink>
-                                </PaginationItem>
-                                : <PaginationItem key={`ellipsis-${index}`}>
-                                    <PaginationEllipsis
-                                        className={cn(
-                                            '!text-primary',
-                                            disabled ?
-                                                "cursor-not-allowed pointer-events-none opacity-50"
-                                                : "",
-                                            "w-4 sm:w-auto",
-                                        )}
-                                    />
-                                </PaginationItem>,
-                        )}
-                    </div>
+                                        "w-7 h-7 sm:w-10 sm:h-10",
+                                    )}
+                                    aria-current={
+                                        page === currentPage ? "page" : (
+                                            undefined
+                                        )
+                                    }
+                                >
+                                    {page}
+                                </PaginationLink>
+                            </PaginationItem>
+                        :   <PaginationItem key={`ellipsis-${index}`}>
+                                <PaginationEllipsis
+                                    className={cn(
+                                        disabled ?
+                                            "cursor-not-allowed pointer-events-none opacity-50"
+                                        :   "",
+                                        "w-4 sm:w-auto",
+                                    )}
+                                />
+                            </PaginationItem>,
+                    )}
                     <PaginationItem>
                         <Button
                             disabled={disabled || currentPage === totalPages}
@@ -147,7 +144,7 @@ const ParamPagination: React.FC<PaginationProps> = ({
                             onClick={handleNext}
                             size="icon"
                             aria-label="Next Page"
-                            className={cn("w-7 h-7 mt-1 sm:m-0 sm:w-10 sm:h-10 !bg-primary border-none !text-primary-foreground", (disabled || currentPage === totalPages) && "cursor-not-allowed pointer-events-none !bg-secondary !text-secondary-foreground")}
+                            className="w-7 h-7 mt-1 sm:m-0 sm:w-10 sm:h-10"
                         />
                     </PaginationItem>
                 </PaginationContent>

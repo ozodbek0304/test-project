@@ -1,6 +1,7 @@
+import { DEFAULT_PAGE_SIZE } from "@/constants/default"
+import { useNavigate, useSearch } from "@tanstack/react-router"
 import { ChevronLeft, ChevronRight } from "lucide-react"
 import { Button } from "../ui/button"
-import { useNavigate, useSearch } from "@tanstack/react-router"
 import Select from "../ui/select"
 
 const CursorPagination: React.FC<
@@ -10,12 +11,12 @@ const CursorPagination: React.FC<
         previous: string | null | undefined
     }
 > = ({
-    page_sizes = [10, 25, 50, 75, 100],
+    page_sizes = [10, DEFAULT_PAGE_SIZE, 50, 75, 100],
     paramName = "cursor",
     pageSizeParamName = "page_size",
     disabled = false,
     changePageSize = true,
-    PageSize = 25,
+    PageSize = DEFAULT_PAGE_SIZE,
     next = null,
     previous = null,
 }) => {

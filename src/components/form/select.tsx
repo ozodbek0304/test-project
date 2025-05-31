@@ -1,9 +1,13 @@
-import { Controller, Control } from "react-hook-form"
+import { Controller, Control, FieldValues, Path } from "react-hook-form"
 import FieldLabel from "./form-label"
 import FieldError from "./form-error"
 import Select from "../ui/select"
+import { getNestedValue } from "./input"
 
-export function FormSelect({
+export function FormSelect<
+    TForm extends FieldValues,
+    T extends Record<string, any>,
+>({
     name,
     label,
     options,
@@ -11,16 +15,18 @@ export function FormSelect({
     required,
     control,
     setValue,
+    valueKey,
+    labelKey,
     hideError = true,
-    returnVal = "value",
-}: thisProps) {
+}: thisProps<TForm, T>) {
+    const error = getNestedValue(control._formState.errors, name)
     return (
         <div className="w-full">
             {label && (
                 <FieldLabel
                     htmlFor={name}
                     required={!!required}
-                    isError={!!control._formState.errors?.[name]}
+                    isError={!!error}
                 >
                     {label}
                 </FieldLabel>
@@ -28,20 +34,31 @@ export function FormSelect({
             <Controller
                 name={name}
                 control={control}
+                rules={
+                    required ? { required: `${label || name}ni kiriting` } : {}
+                }
                 render={({ field }) => (
-                    <div className={label ? "pt-1" : ""}>
+                    <div className={label ? "pt-[2px]" : ""}>
                         <Select
                             options={options}
-                            label={label || 'Tanlang'}
-                            value={field.value?.toString()}
-                            setValue={(val) => val === 'other' ? setValue?.(val) : field.onChange(val)}
-                            returnVal={returnVal}
-                            disabled={field.disabled || disabled}
+                            label={label || "Tanlang"}
+                            value={field.value}
+                            className={
+                                !!error && "border-destructive focus:right-0 "
+                            }
+                            setValue={(val) =>
+                                val === "other"
+                                    ? setValue?.(val)
+                                    : field.onChange(val)
+                            }
+                            disabled={disabled}
+                            labelKey={labelKey}
+                            valueKey={valueKey}
                         />
                     </div>
                 )}
             />
-            {!hideError && control._formState.errors?.[name] && (
+            {!hideError && error && (
                 <FieldError>
                     {control._formState.errors[name]?.message as string}
                 </FieldError>
@@ -50,14 +67,15 @@ export function FormSelect({
     )
 }
 
-interface thisProps {
-    name: string
+type thisProps<TForm extends FieldValues, T extends Record<string, any>> = {
+    name: Path<TForm>
     label?: string
-    options?: { label: string | number; value: string | number }[]
+    options: T[]
     disabled?: boolean
     required?: boolean
-    setValue?: (val: string | number) => void
-    control: Control<any>
+    setValue?: (val: string) => void
+    control: Control<TForm>
     hideError?: boolean
-    returnVal?: "value" | "label"
+    labelKey?: keyof T
+    valueKey?: keyof T
 }

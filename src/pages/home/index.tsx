@@ -1,43 +1,32 @@
-import { CollapsibleDataTable } from "@/components/collapsible-table"
 import { useGet } from "@/hooks/useGet"
 import { useColumns } from "./columns"
 import AddOrderer from "./add-orderer"
-import { useState } from "react"
 import { useSearch } from "@tanstack/react-router"
+import { DataTable } from "@/components/ui/datatable"
 
 const HomePages = () => {
-    const [open, setOpen] = useState(false)
 
     const search: any = useSearch({ from: "/_main" })
 
     const { data, isLoading } = useGet<{
         total_pages: number
         results: UserInfo[]
-    }>(
-        "employees/",
-        { ...search},
-    )
+    }>("employees/", { ...search })
 
+    const columns = useColumns()
     return (
-        <div>
-            <CollapsibleDataTable
-                columns={useColumns({
-                    onAdd: () => setOpen(true),
-                    onEdit: (val) => {
-                        setOpen(true)
-                    },
-                })}
-                data={data?.results?.map((item) => ({
-                    ...item,
-                }))}
-                paginationProps={{ totalPages: data?.total_pages || 1 }}
-                loading={isLoading}
-                head={
-                    <div className="flex  justify-end">
-                        {<AddOrderer open={open} setOpen={setOpen} />}
-                    </div>
-                }
-            />
+        <div className="grid grid-cols-12 gap-4">
+            <div className=" lg:col-span-4">
+                <AddOrderer />
+            </div>
+            <div className=" lg:col-span-8">
+                <DataTable
+                    columns={columns}
+                    data={data?.results}
+                    paginationProps={{ totalPages: data?.total_pages || 1 }}
+                    loading={isLoading}
+                />
+            </div>
         </div>
     )
 }

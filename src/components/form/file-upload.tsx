@@ -7,7 +7,6 @@ import { FileUploader } from "react-drag-drop-files"
 import Spinner from "../ui/spinner"
 import FieldLabel from "./form-label"
 import FieldError from "./form-error"
-import compressImg from "@/lib/compress-img"
 import { Input } from "../ui/input"
 
 type TProps<Form extends FieldValues> = {
@@ -25,8 +24,9 @@ type TProps<Form extends FieldValues> = {
     hideError?: boolean
 }
 
-type FileType<Multiple extends boolean> =
-    Multiple extends true ? FileList : File | null
+type FileType<Multiple extends boolean> = Multiple extends true
+    ? FileList
+    : File | null
 
 export default function FileUpload<TForm extends FieldValues>({
     control,
@@ -63,7 +63,7 @@ export default function FileUpload<TForm extends FieldValues>({
                 }
 
                 if (multiple && val) {
-                    const totalSize = val.reduce(
+                    const totalSize = val?.reduce(
                         (prev: number, current: File) =>
                             prev + (current?.size || 0),
                         0,
@@ -73,19 +73,17 @@ export default function FileUpload<TForm extends FieldValues>({
                         valid = false
                     }
                     if (totalSize > maxS) {
-                        err =
-                            isCompressed ?
-                                `Kompressdan keyin rasmlar hajmi ${maxSize} MB dan oshib ketdi`
-                            :   `Rasmlar hajmi ${maxSize} MB dan oshib ketdi`
+                        err = isCompressed
+                            ? `Kompressdan keyin rasmlar hajmi ${maxSize} MB dan oshib ketdi`
+                            : `Rasmlar hajmi ${maxSize} MB dan oshib ketdi`
                         valid = false
                     }
                 }
 
                 if (!multiple && val && val.size > maxS) {
-                    err =
-                        isCompressed ?
-                            `Kompressdan keyin rasm hajmi ${maxSize} MB dan oshib ketdi`
-                        :   `Rasm hajmi ${maxSize} MB dan oshib ketdi`
+                    err = isCompressed
+                        ? `Kompressdan keyin rasm hajmi ${maxSize} MB dan oshib ketdi`
+                        : `Rasm hajmi ${maxSize} MB dan oshib ketdi`
                     valid = false
                 }
 
@@ -94,24 +92,20 @@ export default function FileUpload<TForm extends FieldValues>({
         },
     })
 
-    const fileArray: File[] =
-        !multiple ?
-            value ? [value]
-            :   []
-        :   value
+    const fileArray: File[] = !multiple ? (value ? [value] : []) : value
 
     async function handleOnChange(files: File[]) {
         if (files.length > 0) {
-            if (isCompressed) {
+            if (isCompressed && files[0].type.includes("image")) {
                 setIsCompressing(true)
                 const compressedFiles = await Promise.all(
-                    files.map((item) => compressImg(item)),
+                    files.map((item) => item),
                 )
                 setIsCompressing(false)
                 onChange(
-                    multiple ?
-                        [...compressedFiles, ...fileArray]
-                    :   compressedFiles[0],
+                    multiple
+                        ? [...compressedFiles, ...fileArray]
+                        : compressedFiles[0],
                 )
             } else {
                 onChange(multiple ? [...files, ...fileArray] : files[0])
@@ -142,31 +136,31 @@ export default function FileUpload<TForm extends FieldValues>({
                     {...field}
                     onPaste={onPaste}
                     tabIndex={0}
-                    placeholder="click and paste (CTRL+V)"
+                    placeholder="(CTRL+V)"
                     fullWidth
                 />
             )}
 
             <FileUploader
                 classes={cn(
-                    "!h-40 !border-primary mt-3 flex justify-center items-center gap-3 [&_path]:!fill-primary [&_div]:flex-col [&_div]:!justify-center [&_div]:items-center [&_div]:!grow-0",
+                    "!h-40 !w-full !border-primary mt-4 flex justify-center items-center gap-3 [&_path]:!fill-primary [&_div]:flex-col [&_div]:!justify-center [&_div]:items-center [&_div]:!grow-0",
                     !!fieldState.error &&
                         "!border-destructive [&_path]:!fill-destructive",
                     field.disabled &&
                         "!border-muted-foreground [&_path]:!fill-muted-foreground pointer-events-none cursor-not-allowed",
                 )}
                 handleChange={
-                    field.disabled ? undefined : (
-                        (val: FileType<typeof multiple>) => {
-                            if (multiple) {
-                                handleOnChange(
-                                    Array.from((val as FileList) || []),
-                                )
-                            } else {
-                                handleOnChange([val as File])
-                            }
-                        }
-                    )
+                    field.disabled
+                        ? undefined
+                        : (val: FileType<typeof multiple>) => {
+                              if (multiple) {
+                                  handleOnChange(
+                                      Array.from((val as FileList) || []),
+                                  )
+                              } else {
+                                  handleOnChange([val as File])
+                              }
+                          }
                 }
                 multiple={multiple}
                 name={field.name}
@@ -185,6 +179,9 @@ export default function FileUpload<TForm extends FieldValues>({
                 )}
                 <div className={fileArray.length ? "pb-3" : ""}>
                     {fileArray.map((file, index) => {
+                        if (!(file instanceof File)) {
+                            return null
+                        }
                         const url = URL.createObjectURL(file)
                         return (
                             <main

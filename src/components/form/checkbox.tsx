@@ -1,16 +1,16 @@
-import { Controller, Control } from "react-hook-form"
+import { Controller, Control, FieldValues, Path } from "react-hook-form"
 import { Checkbox } from "../ui/checkbox"
 import FieldLabel from "./form-label"
 import FieldError from "./form-error"
 
-export function FormCheckbox({
+export function FormCheckbox<TForm extends FieldValues>({
     name,
     label,
     disabled,
     control,
     required,
     hideError = true,
-}: thisProps) {
+}: thisProps<TForm>) {
     return (
         <div>
             <Controller
@@ -22,14 +22,13 @@ export function FormCheckbox({
                             checked={field.value}
                             onCheckedChange={field.onChange}
                             disabled={disabled || field.disabled}
-                            className=""
+                            className="-mt-1"
                             id={name}
                         />
                         <FieldLabel
                             htmlFor={name}
                             required={!!required}
                             isError={!!control._formState.errors?.[name]}
-                            className="pb-0"
                         >
                             {label}
                         </FieldLabel>
@@ -45,11 +44,11 @@ export function FormCheckbox({
     )
 }
 
-interface thisProps {
-    name: string
+interface thisProps<TForm extends FieldValues> {
+    name: Path<TForm>
     label: string
     disabled?: boolean
-    control: Control<any>
+    control: Control<TForm>
     required?: boolean
     hideError?: boolean
 }

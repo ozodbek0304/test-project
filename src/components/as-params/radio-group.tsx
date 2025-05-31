@@ -1,6 +1,6 @@
 import { useNavigate, useSearch } from "@tanstack/react-router"
-import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 import { Label } from "../ui/label"
+import { RadioGroup, RadioGroupItem } from "../ui/radio-group"
 
 type RadioOption = {
     value: string | undefined | number
@@ -17,6 +17,7 @@ type ParamRadioGroupProps = {
     anotherValue?: { [key: string]: string | undefined }
     disabled?: boolean
     returnVal?: "value" | "label" | "paramValue"
+    pageKey?: string
 }
 
 const ParamRadioGroup: React.FC<ParamRadioGroupProps> = ({
@@ -26,6 +27,7 @@ const ParamRadioGroup: React.FC<ParamRadioGroupProps> = ({
     anotherValue,
     disabled,
     returnVal = "paramValue",
+    pageKey = "page",
 }) => {
     const navigate = useNavigate()
     const params: any = useSearch({ from: "/_main" })
@@ -47,7 +49,12 @@ const ParamRadioGroup: React.FC<ParamRadioGroupProps> = ({
             :   paramVal
 
         navigate({
-            search: { ...params, ...anotherValue, [paramName]: searchValue },
+            search: {
+                ...params,
+                ...anotherValue,
+                [paramName]: searchValue,
+                [pageKey]: undefined,
+            },
         })
     }
 

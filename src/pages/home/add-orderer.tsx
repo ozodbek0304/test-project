@@ -1,22 +1,14 @@
-import FileUpload2 from "@/components/form/file-upload2"
+import { FormFormatNumberInput } from "@/components/form/format-number-input"
 import FormInput from "@/components/form/input"
 import { FormNumberInput } from "@/components/form/number-input"
-import { FormPhoneNumber } from "@/components/form/phone-number"
 import { FormSelect } from "@/components/form/select"
 import FormTextarea from "@/components/form/textarea"
 import { Button } from "@/components/ui/button"
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
-} from "@/components/ui/dialog"
-import { useRequest } from "@/hooks/useRequest"
+import { Card, CardContent } from "@/components/ui/card"
+import { usePost } from "@/hooks/usePost"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
 import { useSearch } from "@tanstack/react-router"
-import { Plus } from "lucide-react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
 import { z } from "zod"
@@ -29,28 +21,20 @@ const positions = [
     { label: "Ishchi", value: "Ishchi" },
 ]
 
-const AddCustomer = ({
-    open,
-    setOpen,
-}: {
-    open: boolean
-    setOpen: (open: boolean) => void
-}) => {
+const AddCustomer = () => {
     const search: any = useSearch({ from: "/_main" })
     const queryClient = useQueryClient()
 
-    const { post, isPending } = useRequest(
+    const { mutate, isPending } = usePost(
         {
-            onSuccess: (res) => {
+            onSuccess: () => {
                 queryClient.invalidateQueries({
-                    queryKey: ["accountant/clients/", search],
+                    queryKey: ["employees/", search],
                 })
                 toast.success("Muvaffaqiyatli qo'shildi")
-                setOpen(false)
                 form.reset()
             },
         },
-        { contentType: "multipart/form-data" },
     )
     const form = useForm<z.infer<typeof formSchema>>({
         resolver: zodResolver(formSchema),
@@ -58,21 +42,13 @@ const AddCustomer = ({
     })
 
     async function onSubmit(data: z.infer<typeof formSchema>) {
-        post("employees/", data)
+        mutate("employees/", data)
     }
 
     return (
-        <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild onClick={() => setOpen(true)}>
-                <Button icon={<Plus width={20} />}>
-                    Foydalanuvchi qo'shish
-                </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-xl">
-                <DialogHeader>
-                    <DialogTitle>Yangi foydalanuvchi qo'shish</DialogTitle>
-                </DialogHeader>
-
+        <Card className="w-full">
+            <CardContent className="space-y-4">
+                <h1>Yangi foydalanuvchi qo'shish</h1>
                 <form
                     onSubmit={form.handleSubmit(onSubmit)}
                     className="flex flex-col gap-4"
@@ -94,11 +70,12 @@ const AddCustomer = ({
                         name="father_name"
                         label="Otasining ismi"
                     />
-                    <FormPhoneNumber
+                    <FormFormatNumberInput
                         required
                         control={form.control}
                         name="phone"
                         label="Telefon raqami"
+                        format=""
                     />
                     <FormNumberInput
                         control={form.control}
@@ -115,18 +92,12 @@ const AddCustomer = ({
                         hideError={false}
                     />
                     <FormTextarea methods={form} name="bio" label="Bio" />
-                    <FileUpload2
-                        control={form.control}
-                        name="photo"
-                        wrapperClassName="!min-w-full"
-                        multiple={false}
-                    />
                     <div className="flex gap-4 justify-end">
                         <Button loading={isPending}>Saqlash</Button>
                     </div>
                 </form>
-            </DialogContent>
-        </Dialog>
+            </CardContent>
+        </Card>
     )
 }
 

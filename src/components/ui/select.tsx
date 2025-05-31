@@ -8,29 +8,33 @@ import {
     SelectValue,
 } from "./select2"
 import { ClassNameValue } from "tailwind-merge"
-const Select = ({
+export default function Select<T extends Record<string, any>>({
     value,
     setValue,
     options,
     label,
     className,
     disabled,
-    returnVal = "value",
-}: thisProps) => {
+    labelKey="label",
+    valueKey="value",
+}: thisProps<T>) {
     return (
         <Select2
             disabled={disabled}
             value={value?.toString()}
             onValueChange={setValue}
         >
-            <SelectTrigger className={`w-full bg-transparent ${className}`}>
+            <SelectTrigger className={`w-full bg-background ${className}`}>
                 <SelectValue className={`${className}`} placeholder={label} />
             </SelectTrigger>
             <SelectContent>
                 <SelectGroup>
                     {options?.map((s, i) => (
-                        <SelectItem key={i} value={s[returnVal]?.toString()}>
-                            {s.label}
+                        <SelectItem
+                            key={i}
+                            value={s[valueKey as keyof T]?.toString()}
+                        >
+                            {s[labelKey as keyof T]}
                         </SelectItem>
                     ))}
                 </SelectGroup>
@@ -39,14 +43,13 @@ const Select = ({
     )
 }
 
-export default Select
-
-interface thisProps {
+interface thisProps<T extends Record<string, any>> {
     value: string | number | null
     setValue: React.Dispatch<React.SetStateAction<string>>
-    options?: { label: string | number; value: string | number }[]
+    options: T[]
     label: string
     className?: ClassNameValue
     disabled?: boolean
-    returnVal?: "label" | "value"
+    labelKey?: keyof T
+    valueKey?: keyof T
 }

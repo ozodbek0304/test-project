@@ -5,21 +5,13 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "../ui/dropdown-menu"
-import { Link, useLocation, useNavigate } from "@tanstack/react-router"
+import { Link, useLocation } from "@tanstack/react-router"
 import { User } from "lucide-react"
 import { ThemeColorToggle } from "./color-toggle"
 
 const Header = () => {
-    const navigate = useNavigate()
     const pathname = useLocation().pathname
 
-    const isSomeActive = (path: string) => {
-        if (pathname?.split("/")?.length > 2) {
-            return path?.slice(1) === pathname?.split("/")[1]
-        } else {
-            return false
-        }
-    }
 
     return (
         <header className="px-4 md:px-6 py-4 gap-6 flex items-center justify-end bg-card max-w-full box-border">
