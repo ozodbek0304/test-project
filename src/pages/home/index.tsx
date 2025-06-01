@@ -46,7 +46,7 @@ const HomePages = () => {
                     <div className="flex flex-col lg:flex-row items-center gap-3 justify-between">
                         <div className="flex items-center gap-3">
                             <h1 className="text-xl font-medium">
-                                Mahsulotlar ro'yxati
+                                Foydalanuvchilar ro'yxati
                             </h1>
                             <Badge>{formatMoney(data?.results.length)}</Badge>
                         </div>
