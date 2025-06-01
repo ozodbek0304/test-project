@@ -33,7 +33,7 @@ const HomePages = () => {
     const { data, isLoading } = useGet<{
         total_pages: number
         results: UserInfo[]
-    }>("employees", { ...search })
+    }>("employees", { params: search })
 
     const columns = useColumns()
     return (
