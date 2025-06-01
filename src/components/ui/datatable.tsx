@@ -254,7 +254,7 @@ export function DataTable<TData>({
                 )}
                 {data?.length ? (
                     <Table
-                        className={`${className} select-text min-w-[1100px]  bg-card rounded-md`}
+                        className={`${className} select-text   bg-card rounded-md`}
                     >
                         <TableHeader>
                             {table

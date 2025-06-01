@@ -1,4 +1,3 @@
-import { useModal } from "@/hooks/useModal"
 import { useQueryClient } from "@tanstack/react-query"
 import { ReactNode } from "@tanstack/react-router"
 import { toast } from "sonner"
@@ -11,6 +10,7 @@ import {
 } from "../ui/dialog"
 import Modal from "./modal"
 import { useDelete } from "@/hooks/useDelete"
+import { useModal } from "@/hooks/useModal"
 
 interface IProps {
     path: string
@@ -58,8 +58,10 @@ export default function DeleteModal({
     })
 
     const handleDelete = () => {
-        mutate(path + `/${id}`)
+        mutate(path + `/${id}/`)
     }
+
+
 
     return (
         <Modal size="max-w-md" modalKey={modalKey}>

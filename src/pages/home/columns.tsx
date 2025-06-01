@@ -8,17 +8,6 @@ export const useColumns = (): ColumnDef<UserInfo>[] => {
             cell: ({ row }) => (row.original.id ? row.index + 1 : ""),
         },
         {
-            header: "Rasm",
-            accessorKey: "photo",
-            cell: ({ row }) => (
-                <img
-                    src={row.original.phone}
-                    alt={row.original.first_name}
-                    className="w-10 h-10"
-                />
-            ),
-        },
-        {
             header: "F.I.O",
             cell: ({ row }) =>
                 row.original?.first_name ? (
@@ -32,23 +21,28 @@ export const useColumns = (): ColumnDef<UserInfo>[] => {
                 ) : (
                     ""
                 ),
+            enableSorting: true,
         },
         {
             header: "Telefon raqam",
             accessorKey: "phone",
             cell: ({ row }) => formatPhoneNumber(row.original.phone),
+            enableSorting: true,
         },
         {
             header: "Yoshi",
             accessorKey: "age",
+            enableSorting: true,
         },
         {
             header: "Lavozimi",
             accessorKey: "position",
+            enableSorting: true,
         },
         {
             header: "Bio",
             accessorKey: "bio",
+            enableSorting: true,
         },
     ]
 }

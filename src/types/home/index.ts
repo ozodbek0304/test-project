@@ -5,7 +5,7 @@ type UserInfo = {
     father_name: string;
     phone: string;
     position: string;
-    age: number;
+    age: number | string;
     photo: string;
     bio: string;
   };

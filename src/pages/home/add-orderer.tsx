@@ -1,17 +1,16 @@
-import { FormFormatNumberInput } from "@/components/form/format-number-input"
 import FormInput from "@/components/form/input"
 import { FormNumberInput } from "@/components/form/number-input"
+import PhoneField from "@/components/form/phone-field"
 import { FormSelect } from "@/components/form/select"
 import FormTextarea from "@/components/form/textarea"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { usePatch } from "@/hooks/usePatch"
 import { usePost } from "@/hooks/usePost"
-import { zodResolver } from "@hookform/resolvers/zod"
 import { useQueryClient } from "@tanstack/react-query"
-import { useSearch } from "@tanstack/react-router"
+import { useEffect } from "react"
 import { useForm } from "react-hook-form"
 import { toast } from "sonner"
-import { z } from "zod"
 
 const positions = [
     { label: "Frontend", value: "Frontend" },
@@ -21,32 +20,60 @@ const positions = [
     { label: "Ishchi", value: "Ishchi" },
 ]
 
-const AddCustomer = () => {
-    const search: any = useSearch({ from: "/_main" })
+type Props = {
+    item: UserInfo | null
+    setCurrent: (val: UserInfo | null) => void
+}
+
+const AddCustomer = ({ item, setCurrent }: Props) => {
     const queryClient = useQueryClient()
 
-    const { mutate, isPending } = usePost(
-        {
-            onSuccess: () => {
-                queryClient.invalidateQueries({
-                    queryKey: ["employees/", search],
-                })
-                toast.success("Muvaffaqiyatli qo'shildi")
-                form.reset()
-            },
+    const form = useForm<UserInfo>()
+    const { mutate: mutateCreate, isPending: isPendingCreate } = usePost({
+        onSuccess: () => {
+            toast.success("Muvaffaqiyatli yaratildi")
+            form.reset()
+            queryClient.invalidateQueries({ queryKey: ["employees"] })
         },
-    )
-    const form = useForm<z.infer<typeof formSchema>>({
-        resolver: zodResolver(formSchema),
-        disabled: isPending,
+    })
+    const { mutate: mutateUpdate, isPending: isPendingUpdate } = usePatch({
+        onSuccess: () => {
+            toast.success("Muvaffaqiyatli yangilandi")
+            form.reset()
+            queryClient.invalidateQueries({ queryKey: ["employees"] })
+            setCurrent(null)
+        },
     })
 
-    async function onSubmit(data: z.infer<typeof formSchema>) {
-        mutate("employees/", data)
+    const disabled = isPendingCreate || isPendingUpdate
+
+    const onSubmit = (values: UserInfo) => {
+        console.log(values)
+        if (item?.id) {
+            mutateUpdate(`employees/${item?.id}`, values)
+        } else {
+            mutateCreate("employees/", values)
+        }
     }
 
+    useEffect(() => {
+        if (item?.id) {
+            form.reset(item)
+        } else {
+            form.reset({
+                first_name: "",
+                last_name: "",
+                father_name: "",
+                phone: "",
+                age: "",
+                position: "",
+                bio: "",
+            })
+        }
+    }, [item])
+
     return (
-        <Card className="w-full">
+        <Card className="w-full border shadow-md">
             <CardContent className="space-y-4">
                 <h1>Yangi foydalanuvchi qo'shish</h1>
                 <form
@@ -66,22 +93,24 @@ const AddCustomer = () => {
                         label="Familiya"
                     />
                     <FormInput
+                        required
                         methods={form}
                         name="father_name"
                         label="Otasining ismi"
                     />
-                    <FormFormatNumberInput
-                        required
-                        control={form.control}
+                    <PhoneField
+                        methods={form}
                         name="phone"
                         label="Telefon raqami"
-                        format=""
+                        required
+                        hideError={true}
                     />
                     <FormNumberInput
                         control={form.control}
                         name="age"
                         thousandSeparator="  "
                         label="Yoshi"
+                        required
                     />
                     <FormSelect
                         name="position"
@@ -89,11 +118,10 @@ const AddCustomer = () => {
                         options={positions}
                         control={form.control}
                         required
-                        hideError={false}
                     />
                     <FormTextarea methods={form} name="bio" label="Bio" />
                     <div className="flex gap-4 justify-end">
-                        <Button loading={isPending}>Saqlash</Button>
+                        <Button loading={disabled}>Saqlash</Button>
                     </div>
                 </form>
             </CardContent>
@@ -102,14 +130,3 @@ const AddCustomer = () => {
 }
 
 export default AddCustomer
-
-const formSchema = z.object({
-    first_name: z.string().min(1),
-    last_name: z.string().min(1),
-    father_name: z.string().optional(),
-    phone: z.string().length(12),
-    age: z.string().min(1),
-    position: z.string().optional(),
-    bio: z.string().optional(),
-    photo: z.instanceof(Blob).or(z.string()).optional(),
-})
