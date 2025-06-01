@@ -52,7 +52,7 @@ const AddCustomer = ({ item, setCurrent }: Props) => {
         if (item?.id) {
             mutateUpdate(`employees/${item?.id}`, values)
         } else {
-            mutateCreate("employees/", values)
+            mutateCreate("employees", values)
         }
     }
 
